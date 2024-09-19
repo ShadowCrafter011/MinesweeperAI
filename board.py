@@ -38,9 +38,9 @@ class Board:
         self.count_bombs()
 
     def __str__(self):
-        output = []
+        output = ["- " * (self.width + 2)]
         for y in range(self.height):
-            row = []
+            row = ["|"]
             for tile in self.board[y]:
                 if tile.is_flagged():
                     row.append(colored("◼", "red"))
@@ -52,7 +52,9 @@ class Board:
                     row.append(colored(str(neighs), self.colors[neighs]))
                 else:
                     row.append(" ")
+            row.append("|")
             output.append(" ".join(row))
+        output.append("- " * (self.width + 2))
         return "\n".join(output)
 
     def count_bombs(self):
@@ -66,9 +68,9 @@ class Board:
                 self.board[y][x].set_bomb_neighbours(bomb_count)
     
     def print_solved(self):
-        output = []
+        output = ["- " * (self.width + 2)]
         for y in range(self.height):
-            row = []
+            row = ["|"]
             for tile in self.board[y]:
                 if tile.is_bomb():
                     row.append(colored("X", "red"))
@@ -76,7 +78,9 @@ class Board:
                     row.append(colored(str(neighs), self.colors[neighs]))
                 else:
                     row.append(" ")
+            row.append("|")
             output.append(" ".join(row))
+        output.append("- " * (self.width + 2))
         return "\n".join(output)
     
     def index_in_board(self, y, x):
@@ -93,6 +97,7 @@ class Board:
         if revealed_tile.is_flagged():
             return True
         
+        # Reveal all adjecant tiles if tile was revealed with enough flagged neighbours
         if revealed_tile.is_revealed():
             neigh_flags = 0
             for transform in self.neighbour_transform:
@@ -111,6 +116,7 @@ class Board:
 
         can_continue = revealed_tile.reveal()
 
+        # Move bomb if it is the first tile clicked
         if not can_continue and self.no_tiles_revealed:
             can_continue = True
             revealed_tile.no_bomb()
@@ -127,12 +133,29 @@ class Board:
                         break
             self.count_bombs()
 
+        # Flood reveal if tile has no bomb neighbours
         if revealed_tile.bomb_neighbours() == 0:
             for transform in self.neighbour_transform:
                 index = [y + transform[0], x + transform[1]]
                 if not self.index_in_board(*index):
                     continue
                 self.auto_reveal(*index)
+
+        # Check if non interacted tiles are all bombs and end the game if so
+        all_bombs_remain = True
+        for y in range(self.height):
+            for tile in self.board[y]:
+                if tile.is_bomb() or tile.is_revealed():
+                    continue
+                all_bombs_remain = False
+        if all_bombs_remain:
+            # Flag remaining tiles
+            for y in range(self.height):
+                for tile in self.board[y]:
+                    if tile.is_revealed() or tile.is_flagged():
+                        continue
+                    tile.toggle_flag()
+            return "won"
 
         self.no_tiles_revealed = False
         return can_continue
