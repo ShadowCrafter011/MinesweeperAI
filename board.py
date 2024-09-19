@@ -56,6 +56,18 @@ class Board:
             output.append(" ".join(row))
         output.append("- " * (self.width + 2))
         return "\n".join(output)
+    
+    def as_flat_numerical(self):
+        output = []
+        for y in range(self.height):
+            for tile in self.board[y]:
+                if not tile.is_revealed():
+                    output.append(-1)
+                elif tile.is_flagged():
+                    output.append(-2)
+                else:
+                    output.append(tile.bomb_neighbours())
+        return output
 
     def count_bombs(self):
         for y in range(self.height):
@@ -82,6 +94,9 @@ class Board:
             output.append(" ".join(row))
         output.append("- " * (self.width + 2))
         return "\n".join(output)
+    
+    def revealed_tiles_count(self):
+        return len(list(filter(lambda x: x >= 0, self.as_flat_numerical())))
     
     def index_in_board(self, y, x):
         return y >= 0 and x >=0 and y < self.height and x < self.width
