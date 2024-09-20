@@ -41,7 +41,7 @@ def main():
 
             print(f"Generation {gen - 1} finished with an average score of {average / len(player_pathes)} and a maximum score of {highest}")
 
-            player_pathes.sort(key=lambda x: x[0])
+            player_pathes.sort(key=lambda x: x[0], reverse=True)
             player_pathes = [p[1] for p in player_pathes[:10]]
 
             players = []
