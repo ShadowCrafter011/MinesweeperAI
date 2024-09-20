@@ -52,7 +52,7 @@ class Player:
         if board:
             inputs = board.width * board.height
         self.input_nodes = [Node(x, -1, "I") for x in range(inputs)]
-        self.output_nodes = [Node(x, -1, "O") for x in range(inputs)]
+        self.output_nodes = [Node(1, -1, "O")]
         self.intermediate_nodes = [[] for _ in range(10)]
         self.connections = []
 
@@ -63,7 +63,8 @@ class Player:
         return "\n".join(connections)
     
     def play(self, board):
-        action = self.get_action(board.as_flat_numerical(), board.width)
+        self.calculate_node_values(board.as_flat_numerical())
+        action = self.get_action(board)
         index = action[1:]
         if action[0] == "flag":
             board.toggle_tile_flag(*index)
@@ -71,9 +72,12 @@ class Player:
         else:
             return board.reveal_tile(*index)
     
-    def get_action(self, flat_board, width):
-            for i in range(len(flat_board)):
-                self.input_nodes[i].value = flat_board[i]
+    def get_action(self, board):
+        return ["flag", 0, 0]
+
+    def calculate_node_values(self, flat_board):
+        for i in range(len(flat_board)):
+            self.input_nodes[i].value = flat_board[i]
             for input_node in self.input_nodes:
                 for con in input_node.connections:
                     con.next_node.value += con.strength * input_node.value
@@ -83,11 +87,6 @@ class Player:
                         continue
                     for con in intermediate_node.connections:
                         con.next_node.value += con.strength * intermediate_node.value
-            biggest = self.output_nodes[0]
-            for output_node in self.output_nodes:
-                if abs(output_node.value) > abs(biggest.value):
-                    biggest = output_node
-            return ["flag" if biggest.value < 0 else "reveal", biggest.index // width, biggest.index % width]
     
     def mutate(self, mutation_chance=1):
         if random() > mutation_chance:

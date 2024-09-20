@@ -1,6 +1,7 @@
 from multiprocessing import Process, Queue
-from player import Player
+from players import Player1 as Player
 from board import Board
+import multiprocessing
 import hashlib
 import pickle
 import shutil
@@ -39,7 +40,7 @@ def main():
                     highest = score
                 player_pathes.append([score, path])
 
-            print(f"Generation {gen - 1} finished with an average score of {average / len(player_pathes)} and a maximum score of {highest}")
+            print(f"Generation {gen - 1} finished with an average score of {average / len(player_pathes)} and a best score of {highest}")
 
             player_pathes.sort(key=lambda x: x[0], reverse=True)
             player_pathes = [p[1] for p in player_pathes[:10]]
@@ -67,8 +68,8 @@ def main():
                 pickle.dump(player, f)
 
         processes = []
-        for _ in range(16):
-            p = Process(target=get_average_score, args=(pathes, 25))
+        for _ in range(multiprocessing.cpu_count()):
+            p = Process(target=get_average_score, args=(pathes, 5))
             p.start()
             processes.append(p)
         [p.join() for p in processes]
